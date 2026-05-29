@@ -237,9 +237,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("DeviceManagement", "1", 1, "0"),
   ("DeviceShutdown", "9", 1, "33"),
   ("DisableOnroadUploads", "0", 2, "0"),
-  ("DisableDriverMonitoring", "0", 0, "0"),
   ("DisableOpenpilotLongitudinal", "0", 0, "0"),
-  ("DisableSafetyChecks", "0", 0, "0"),
   ("DiscordUsername", "", 0, ""),
   ("DisengageVolume", "101", 2, "101"),
   ("DistanceButtonControl", "1", 2, "0"),
@@ -570,8 +568,8 @@ class FrogPilotVariables:
     toggle = self.frogpilot_toggles
 
     toggle.debug_mode = params.get_bool("DebugMode")
-    toggle.disable_driver_monitoring = params.get_bool("DisableDriverMonitoring")
-    toggle.disable_safety_checks = params.get_bool("DisableSafetyChecks")
+    toggle.disable_driver_monitoring = Path("/data/disable_driver_monitoring").is_file()
+    toggle.disable_safety_checks = Path("/data/disable_safety_checks").is_file()
     toggle.force_offroad = params_memory.get_bool("ForceOffroad")
     toggle.force_onroad = params_memory.get_bool("ForceOnroad")
 
