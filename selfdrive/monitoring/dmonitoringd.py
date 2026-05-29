@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import gc
+from pathlib import Path
 
 import cereal.messaging as messaging
 from openpilot.common.params import Params
 from openpilot.common.realtime import set_realtime_priority
 from openpilot.selfdrive.monitoring.helpers import DriverMonitoring
+
+DISABLE_DM_PATH = Path("/data/disable_driver_monitoring")
 
 
 def dmonitoringd_thread():
@@ -18,20 +21,19 @@ def dmonitoringd_thread():
   DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"))
 
   # FrogPilot variables
-  disable_driver_monitoring = params.get_bool("DisableDriverMonitoring")
+  disable_driver_monitoring = DISABLE_DM_PATH.is_file()
   driver_view_enabled = params.get_bool("IsDriverViewEnabled")
 
   # 20Hz <- dmonitoringmodeld
   while True:
     sm.update()
     if not sm.updated['driverStateV2']:
-      # iterate when model has new output
       continue
 
     # Reload live toggle every ~2 seconds (40 frames @ 20Hz)
     if sm['driverStateV2'].frameId % 40 == 1:
       DM.always_on = params.get_bool("AlwaysOnDM")
-      disable_driver_monitoring = params.get_bool("DisableDriverMonitoring")
+      disable_driver_monitoring = DISABLE_DM_PATH.is_file()
 
     if disable_driver_monitoring:
       # Publish a neutral/attentive state — no distraction tracking, no alerts
