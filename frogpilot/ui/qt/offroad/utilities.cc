@@ -17,6 +17,30 @@ FrogPilotUtilitiesPanel::FrogPilotUtilitiesPanel(FrogPilotSettingsWindow *parent
   }
   addItem(debugModeToggle);
 
+  ParamControl *disableDriverMonitoringToggle = new ParamControl("DisableDriverMonitoring",
+    tr("Disable Driver Monitoring (Debug)"),
+    tr("<b>WARNING: FOR DEBUGGING ONLY — Do NOT drive with this enabled.</b><br><br>"
+       "Completely bypasses the driver monitoring camera and all attentiveness checks. "
+       "Use this to determine whether driver monitoring is causing a steering bug. "
+       "Re-disable before any normal drive."),
+    "");
+  if (forceOpenDescriptions) {
+    disableDriverMonitoringToggle->showDescription();
+  }
+  addItem(disableDriverMonitoringToggle);
+
+  ParamControl *disableSafetyChecksToggle = new ParamControl("DisableSafetyChecks",
+    tr("Disable Seatbelt & Door Safety Checks (Debug)"),
+    tr("<b>WARNING: FOR DEBUGGING ONLY — Do NOT drive with this enabled.</b><br><br>"
+       "Suppresses the seatbelt-not-latched and door-open disengagement events. "
+       "Use this to determine whether those events are triggering a steering bug. "
+       "Re-disable before any normal drive."),
+    "");
+  if (forceOpenDescriptions) {
+    disableSafetyChecksToggle->showDescription();
+  }
+  addItem(disableSafetyChecksToggle);
+
   ButtonControl *flashPandaButton = new ButtonControl(tr("Flash Panda"), tr("FLASH"), tr("<b>Reinstall the Panda firmware</b> to fix connection or reliability issues."));
   QObject::connect(flashPandaButton, &ButtonControl::clicked, [parent, flashPandaButton, this]() {
     if (ConfirmationDialog::confirm(tr("Are you sure you want to flash the Panda firmware?"), tr("Flash"), this)) {
