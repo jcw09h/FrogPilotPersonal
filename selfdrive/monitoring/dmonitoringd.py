@@ -18,6 +18,7 @@ def dmonitoringd_thread():
   DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"))
 
   # FrogPilot variables
+  disable_driver_monitoring = params.get_bool("DisableDriverMonitoring")
   driver_view_enabled = params.get_bool("IsDriverViewEnabled")
 
   # 20Hz <- dmonitoringmodeld
@@ -25,6 +26,21 @@ def dmonitoringd_thread():
     sm.update()
     if not sm.updated['driverStateV2']:
       # iterate when model has new output
+      continue
+
+    # Reload live toggle every ~2 seconds (40 frames @ 20Hz)
+    if sm['driverStateV2'].frameId % 40 == 1:
+      DM.always_on = params.get_bool("AlwaysOnDM")
+      disable_driver_monitoring = params.get_bool("DisableDriverMonitoring")
+
+    if disable_driver_monitoring:
+      # Publish a neutral/attentive state — no distraction tracking, no alerts
+      dat = messaging.new_message('driverMonitoringState')
+      dat.driverMonitoringState.events = []
+      dat.driverMonitoringState.faceDetected = False
+      dat.driverMonitoringState.isRHD = DM.wheel_on_right
+      dat.driverMonitoringState.awarenessStatus = 1.0
+      pm.send('driverMonitoringState', dat)
       continue
 
     valid = sm.all_checks()
@@ -36,10 +52,6 @@ def dmonitoringd_thread():
     # publish
     dat = DM.get_state_packet(valid=valid or driver_view_enabled)
     pm.send('driverMonitoringState', dat)
-
-    # load live always-on toggle
-    if sm['driverStateV2'].frameId % 40 == 1:
-      DM.always_on = params.get_bool("AlwaysOnDM")
 
     # save rhd virtual toggle every 5 mins
     if (sm['driverStateV2'].frameId % 6000 == 0 and
