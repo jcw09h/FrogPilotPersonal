@@ -258,11 +258,19 @@ class Controls:
       self.events.add(EventName.resumeBlocked)
 
     if not self.CP.notCar:
-      self.events.add_from_msg(self.sm['driverMonitoringState'].events)
+      if not self.frogpilot_toggles.disable_driver_monitoring:
+        self.events.add_from_msg(self.sm['driverMonitoringState'].events)
 
     # Add car events, ignore if CAN isn't valid
     if CS.canValid:
-      self.events.add_from_msg(CS.events)
+      if self.frogpilot_toggles.disable_safety_checks:
+        # Filter out seatbelt and door-open events so we can isolate whether
+        # they are causing a steering bug. FOR DEBUGGING ONLY.
+        filtered_events = [e for e in CS.events if e.name not in (EventName.seatbeltNotLatched, EventName.doorOpen)]
+        for e in filtered_events:
+          self.events.add(e.name)
+      else:
+        self.events.add_from_msg(CS.events)
 
     # Create events for temperature, disk space, and memory
     if self.sm['deviceState'].thermalStatus >= ThermalStatus.red:
