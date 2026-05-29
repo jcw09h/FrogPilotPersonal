@@ -258,12 +258,12 @@ class Controls:
       self.events.add(EventName.resumeBlocked)
 
     if not self.CP.notCar:
-      if not self.frogpilot_toggles.disable_driver_monitoring:
+      if not getattr(self.frogpilot_toggles, 'disable_driver_monitoring', False):
         self.events.add_from_msg(self.sm['driverMonitoringState'].events)
 
     # Add car events, ignore if CAN isn't valid
     if CS.canValid:
-      if self.frogpilot_toggles.disable_safety_checks:
+      if getattr(self.frogpilot_toggles, 'disable_safety_checks', False):
         # Filter out seatbelt and door-open events so we can isolate whether
         # they are causing a steering bug. FOR DEBUGGING ONLY.
         filtered_events = [e for e in CS.events if e.name not in (EventName.seatbeltNotLatched, EventName.doorOpen)]
